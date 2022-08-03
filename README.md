@@ -1,6 +1,6 @@
 # Wikinformetrics
 ## About
-This repository includes all data processing for the work "*Wikinformetrics: Construction and description of an open Wikipedia knowledge graph dataset for informetric purposes*".
+This repository includes all data processing for the case study of the work "*Wikinformetrics: Construction and description of an open Wikipedia knowledge graph dataset for informetric purposes*".
 
 ## Authors
 * [Wenceslao Arroyo-Machado](https://orcid.org/0000-0001-9437-8757)<sup>1</sup>
