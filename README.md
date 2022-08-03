@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6958973.svg)](https://doi.org/10.5281/zenodo.6958973)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6958972.svg)](https://doi.org/10.5281/zenodo.6958972)
 
 # Wikinformetrics
 ## About
