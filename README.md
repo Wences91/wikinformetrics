@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6958973.svg)](https://doi.org/10.5281/zenodo.6958973)
+
 # Wikinformetrics
 ## About
 This repository includes all data processing for the case study of the work "*Wikinformetrics: Construction and description of an open Wikipedia knowledge graph dataset for informetric purposes*".
