@@ -11,6 +11,6 @@ This repository includes all data processing for the work "*Wikinformetrics: Con
 The data has been obtained from the Wikipedia Knowledge Graph dataset, available at Zenodo ([10.5281/zenodo.6346899](https://doi.org/10.5281/zenodo.6346899)).
 
 ## Jupyter and R Notebooks
-The entire data processing workflow for the generation of Wikipedia page indicators is available in Jupyter Notebooks. The generation of visualisations is available in an R Notebook.
+The entire data processing workflow for the generation of Wikipedia page indicators is available in Jupyter Notebooks. The generation of visualizations is available in an R Notebook.
 
-It is also included the R Shiny app created for the [interactive visualisations](https://wenceslao-arroyo-machado.shinyapps.io/wikinformetrics/).
+It is also included the R Shiny app created for the [interactive visualizations](https://wenceslao-arroyo-machado.shinyapps.io/wikinformetrics/).
