@@ -1,52 +1,74 @@
 library(shiny)
 library(shinythemes)
 library(dplyr)
-library(ggplot2)
+library(plotly)
 
 # Import data
-df <- read.delim2('data/page_metrics_top.tsv', stringsAsFactors = FALSE)
+df <- read.delim2('data/page_metrics_top.tsv',
+                  stringsAsFactors = FALSE,
+                  check.names = FALSE)
 
 # Define UI
 ui <- navbarPage(
   
   # Application title
   theme = shinytheme('cosmo'),
-  title='Wikimetrics',
+  title='Wikinformetrics',
   
   # Tab panels
-  tabPanel('Comparative',
+  tabPanel('Scatterplot',
+           titlePanel('Case study: informetric analysis of the English Wikipedia'),
+           HTML('This R Shiny app is part of the paper \'<i>Wikinformetrics: Construction and description of an open Wikipedia knowledge graph dataset for informetric purposes</i>\' and provides interactive visualizations of the top Wikipedia articles by indicator to better understand the analytical dimension of these metrics.<br><br>'),
            sidebarLayout(
              sidebarPanel(
-               selectInput('indicator1', 'Indicator 1:',
-                           c('age', 'views', 'page_edits', 'editors', 'len', 'references',
-                             'talks', 'talkers', 'links', 'linked', 'urls', 'ref_urls',
-                             'ref_pubs'),
-                           selected = 'talks'),
-               selectInput('indicator2', 'Indicator 2:',
-                           c('age', 'views', 'page_edits', 'editors', 'len', 'references',
-                             'talks', 'talkers', 'links', 'linked', 'urls', 'ref_urls',
-                             'ref_pubs'),
-                           selected = 'views'),
-               radioButtons('log', 'Log10 scale:',
+               selectInput('indicator1', 'Axis X:',
+                           c('Editors', 'Edits', 'Linked', 'Links', 'Age', 'Length',
+                             'Talkers', 'Talks', 'Views', 'References',
+                             'Pub. referenced', 'URLs', 'URLs referenced'),
+                           selected = 'Talks'),
+               selectInput('indicator2', 'Axis Y:',
+                           c('Editors', 'Edits', 'Linked', 'Links', 'Age', 'Length',
+                             'Talkers', 'Talks', 'Views', 'References',
+                             'Pub. referenced', 'URLs', 'URLs referenced'),
+                           selected = 'Views'),
+               selectInput('indicator3', 'Size:',
+                           c('None', 'Editors', 'Edits', 'Linked', 'Links', 'Age', 'Length',
+                             'Talkers', 'Talks', 'Views', 'References',
+                             'Pub. referenced', 'URLs', 'URLs referenced'),
+                           selected = 'None'),
+               selectizeInput('toremove', 'Remove',
+                              df$Title,
+                              options = list(placeholder = 'Select a page name', maxItems = 10),
+                              selected='Main Page'),
+               radioButtons('log', 'Log scale:',
                             c('True' = 'True',
-                              'False' = 'False'))
+                              'False' = 'False')),
+               HTML('<b>Note:</B> Only the top 1000 Wikipedia articles for each indicator are included in the plot, making a total of 7374 unique articles.')
              ),
              mainPanel(
-               plotOutput('comparePlot', height = 600)
+               plotlyOutput('comparePlot', height = 600)
              )
            ),
            hr(),
-           helpText(HTML('By Wenceslao Arroyo-Machado <a href="https://twitter.com/Wences91"><i class="fab fa-twitter"></i></a>'))),
+           helpText(HTML('By Wenceslao Arroyo-Machado <a href="https://twitter.com/Wences91"><i class="fab fa-twitter"></i></a>, Daniel Torres-Salinas <a href="https://twitter.com/torressalinas"><i class="fab fa-twitter"></i></a> and Rodrigo Costas <a href="https://twitter.com/RodrigoCostas1/"><i class="fab fa-twitter"></i></a><br>Code available at <a href="https://github.com/Wences91/wikinformetrics"><i class="fab fa-github"></i></a>'))),
            
-  tabPanel('Data',
+  tabPanel('Ranking',
+           titlePanel('Case study: informetric analysis of the English Wikipedia'),
+           HTML('This R Shiny app is part of the paper \'<i>Wikinformetrics: Construction and description of an open Wikipedia knowledge graph dataset for informetric purposes</i>\' and provides interactive visualizations of the top Wikipedia articles by indicator to better understand the analytical dimension of these metrics.<br><br>'),
            sidebarLayout(
              sidebarPanel(
-               selectInput('indicator', 'Indicator:',
-                           c('age', 'views', 'page_edits', 'editors', 'len', 'references',
-                             'talks', 'talkers', 'links', 'linked', 'urls', 'ref_urls',
-                             'ref_pubs'),
-                           multiple = FALSE, selected=c('views')),
-               downloadButton('downloadData', 'Download all data')
+               selectInput('filter_indicator', 'Order in descending order by:',
+                           c('Editors', 'Edits', 'Linked', 'Links', 'Age', 'Length',
+                             'Talkers', 'Talks', 'Views', 'References',
+                             'Pub. referenced', 'URLs', 'URLs referenced'),
+                           multiple = FALSE, selected=c('Views')),
+               selectInput('select_indicators', 'Include:',
+                           c('Editors', 'Edits', 'Linked', 'Links', 'Age', 'Length',
+                             'Talkers', 'Talks', 'Views', 'References',
+                             'Pub. referenced', 'URLs', 'URLs referenced'),
+                           multiple = TRUE, selected=c('Age', 'Views')),
+               downloadButton('downloadData', 'Download this table'),
+               HTML('<br><br><b>Note:</B> Only the top 1000 Wikipedia articles for each indicator are included in the plot, making a total of 7374 unique articles.')
              ),
              mainPanel(
                column(12,
@@ -54,48 +76,66 @@ ui <- navbarPage(
                ))
            ),
            hr(),
-           helpText(HTML('By Wenceslao Arroyo-Machado <a href="https://twitter.com/Wences91"><i class="fab fa-twitter"></i></a>')))
+           helpText(HTML('By Wenceslao Arroyo-Machado <a href="https://twitter.com/Wences91"><i class="fab fa-twitter"></i></a>, Daniel Torres-Salinas <a href="https://twitter.com/torressalinas"><i class="fab fa-twitter"></i></a> and Rodrigo Costas <a href="https://twitter.com/RodrigoCostas1/"><i class="fab fa-twitter"></i></a><br>Code available at <a href="https://github.com/Wences91/wikinformetrics"><i class="fab fa-github"></i></a>')))
 )
 
 # Define server 
 server <- function(input, output) {
   
-  output$comparePlot <- renderPlot({
+  output$comparePlot <- renderPlotly({
     
-    df_2 <- df[,c(input$indicator1, input$indicator2)]
+    df_2 <- df[which(!(df$Title %in% input$toremove)),]
     
+    x <- reactive({
+      df_2[,input$indicator1]
+    })
     
-    p <- ggplot(data=df_2,
-             aes(x=get(input$indicator1),
-                 y=get(input$indicator2)))+
-        geom_point(alpha=0.5, color='#41a18b')+
-        theme_minimal()+
-        labs(x=input$indicator1,
-             y=input$indicator2)+
-        theme(legend.position = 'none',
-              strip.background=element_rect(colour='#373a3c', fill='#373a3c'),
-              text=element_text(family='Arial', size=16, color='black'),
-              axis.text=element_text(color='black', size=13),
-              axis.ticks=element_line(color='black'),
-              strip.text = element_text(size=15))
+    y <- reactive({
+      df_2[,input$indicator2]
+    })
     
-    if(input$log=='True'){
-      p <- p + scale_x_log10() + scale_y_log10()
+    if(input$indicator3 != 'None'){
+      df_2 <- df_2[,c('Title', 'Creation', input$indicator1, input$indicator2, input$indicator3)]
+      
+      size <- reactive({
+        df_2[,input$indicator3]
+      })
+      
+      p <- plotly::plot_ly(data = df_2, x = x(), y = y(), size = size(),
+                           type = 'scatter', mode = 'markers',
+                           text = ~paste('Title:', Title, '<br>Creation:', Creation),
+                           color = I('#41a18b'),
+                           alpha = 0.7)
+    }else{
+      df_2 <- df_2[,c('Title', 'Creation', input$indicator1, input$indicator2)]
+      
+      p <- plotly::plot_ly(data = df_2, x = x(), y = y(),
+                           type = 'scatter', mode = 'markers',
+                           text = ~paste('Title:', Title, '<br>Creation:', Creation),
+                           color = I('#41a18b'),
+                           alpha = 0.7)
     }
     
-    p
-    
+    if(input$log=='True'){
+      layout(p, xaxis = list(title = input$indicator1,
+                             type = 'log'),
+             yaxis = list(title = input$indicator2,
+                          type = 'log'))
+    }else{
+      layout(p, xaxis = list(title = input$indicator1),
+             yaxis = list(title = input$indicator2))
+    }
   })
   
   
-  output$table <- renderDataTable(df[order(df[,input$indicator], decreasing = TRUE),])
+  output$table <- renderDataTable(df[order(df[,input$filter_indicator], decreasing = TRUE), c('Title', input$select_indicators)])
   
   output$downloadData <- downloadHandler(
     filename = function() {
       paste('save.tsv', sep = '')
     },
     content = function(file) {
-      write.table(df[order(df[,input$indicator], decreasing = TRUE),], file, row.names = FALSE, sep='\t')
+      write.table(df[order(df[,input$filter_indicator], decreasing = TRUE), c('Title', input$select_indicators)], file, row.names = FALSE, sep='\t')
     }
   )
 }
