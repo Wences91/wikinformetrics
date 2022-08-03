@@ -1,0 +1,107 @@
+---
+title: 'Plots'
+author: 'Wenceslao Arroyo-Machado, Daniel Torres-Salinas, Rodrigo Costas'
+date: '28 May, 2022'
+output:
+  html_document:
+    theme: yeti
+    toc: false
+    toc_float: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(corrplot)
+library(wesanderson)
+library(ggplot2)
+```
+
+# Data import
+Metrics of Wikipedia articles are imported. These metrics are renamed to make the plots easier to read. Some that are not used are removed to make the `data frame` lighter.
+
+```{r data_import}
+df <- read.delim2('results/page_metrics.tsv', stringsAsFactors = FALSE)
+```
+
+```{r rename}
+names(df)[which(names(df)=='age')] <- 'Age'
+names(df)[which(names(df)=='editors')] <- 'Editors'
+names(df)[which(names(df)=='page_edits')] <- 'Edits'
+names(df)[which(names(df)=='len')] <- 'Length'
+names(df)[which(names(df)=='linked')] <- 'Linked'
+names(df)[which(names(df)=='links')] <- 'Links'
+names(df)[which(names(df)=='ref_pubs')] <- 'Pub. referenced'
+names(df)[which(names(df)=='references')] <- 'References'
+names(df)[which(names(df)=='talkers')] <- 'Talkers'
+names(df)[which(names(df)=='talks')] <- 'Talks'
+names(df)[which(names(df)=='urls')] <- 'URLs'
+names(df)[which(names(df)=='views')] <- 'Views'
+```
+
+```{r selection}
+df <- df[,c('Editors', 'Edits', 'Linked', 'Links',
+            'Age', 'Length', 'Talkers', 'Talks',
+            'Views', 'References', 'Pub. referenced', 'URLs')]
+
+```
+
+# Correlations
+Correlations are calculated using Pearson.
+
+```{r correlations, fig.align = 'center'}
+#png('results/Correlations.png', width = 1500, height = 1000, res=200)
+
+colors <- colorRampPalette(c('#FFFFFF', '#fb0007'))
+
+corrplot(cor(df, use = 'complete.obs', method='pearson'),
+         method='color',  col=colors(10),  #col=wes_palette('Zissou1', 10, type = 'continuous'),
+         type='lower', order = 'original',
+         is.corr = FALSE, col.lim = c(0,1),
+         addCoef.col = 'black', 
+         tl.col='black', tl.srt=45,
+         diag=T, number.cex = 0.6, tl.cex = 0.75
+)
+#dev.off()
+```
+
+```{r boxplots, fig.show='hold', out.width='25%'}
+par(mar = c(4, 4, .1, .1))
+for (indicator in names(df)) {
+  
+  p <- ggplot(df, aes(x='', y=get(indicator))) +
+    stat_boxplot(geom='errorbar', linetype=1, width=0.3) +
+    geom_boxplot(outlier.shape = NA, fill = '#cdd8d7', width = 1) +
+    stat_summary(fun=mean, geom='point', size=4, shape=4) +
+    coord_cartesian(ylim = c(boxplot.stats(df[,indicator])$stats[1],
+                             max(c(boxplot.stats(df[,indicator])$stats[5],
+                                   mean(df[,indicator]))))) +
+    labs(x='', y=indicator) +
+    theme_classic() +
+    theme(axis.ticks.x = element_blank(),
+          axis.text.y = element_text(size = 13, color = 'black', angle = 90, hjust = 0.5),
+          axis.title.y = element_text(size = 17, color = 'black', face = 'bold'))
+  
+  #png(paste0('results/', indicator, '.png'), width = 500, height = 500, res=170)
+  print(p)
+  #dev.off()
+}
+```
+
+```{r boxplot_talkers, fig.align = 'center'}
+indicator <- 'Talkers'
+#png(paste0('results/', indicator, '.png'), width = 500, height = 500, res=170)
+ggplot(df, aes(x='', y=get(indicator))) +
+    stat_boxplot(geom='errorbar', linetype=1, width=0.3) +
+    geom_boxplot(outlier.shape = NA, fill = '#cdd8d7', width = 1) +
+    stat_summary(fun=mean, geom='point', size=4, shape=4) +
+    coord_cartesian(ylim = c(boxplot.stats(df[,indicator])$stats[1],
+                             max(c(boxplot.stats(df[,indicator])$stats[5],
+                                   mean(df[,indicator]))))) +
+    labs(x='', y=indicator) +
+    scale_y_continuous(breaks = c(0,5,10)) +
+    theme_classic() +
+    theme(axis.ticks.x = element_blank(),
+          axis.text.y = element_text(size = 14, color = 'black', angle = 90, hjust = 0.5),
+          axis.title.y = element_text(size = 17, color = 'black', face = 'bold'))
+#dev.off()
+```
