@@ -1,7 +1,7 @@
 ---
 title: 'Plots'
 author: 'Wenceslao Arroyo-Machado, Daniel Torres-Salinas, Rodrigo Costas'
-date: '28 May, 2022'
+date: '20 Sep, 2022'
 output:
   html_document:
     theme: yeti
@@ -53,7 +53,7 @@ Correlations are calculated using Pearson.
 
 colors <- colorRampPalette(c('#FFFFFF', '#fb0007'))
 
-corrplot(cor(df, use = 'complete.obs', method='pearson'),
+corrplot(cor(df, use = 'complete.obs', method='spearman'),
          method='color',  col=colors(10),  #col=wes_palette('Zissou1', 10, type = 'continuous'),
          type='lower', order = 'original',
          is.corr = FALSE, col.lim = c(0,1),
